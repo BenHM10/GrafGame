@@ -170,7 +170,7 @@
                     if(e.keyCode == 39) RIGHT = false;
                 }
 
-                // variabel dalam membantu mengatur jarak keluar peluru
+                // variabel mengatur jarak keluar peluru
                 var fireRate = 15;
                 var counter = 0;
                 var fireRateMusuh = 25;
@@ -218,7 +218,7 @@
                         buatpeluru(bola.x,bola.y,bola.sudut,-(1+Math.abs(5)),-bola.jarijari-5);
                         counter = 0;
                     }
-                    /* background dst masuk sini */
+                    /* background dst */
                     var posisi = 760;
                     for(i=0;i<bola.darah;i++){
                         context.drawImage(gambarHati, posisi, 15, 25, 25); //context.drawImage(objek_image,Xawal,Yawal,lebar,tinggi)
@@ -389,7 +389,7 @@
                         }
                         counterMusuh = 0
                     }
-                    //menggambar darah
+                    //menggambar nyawa
                     var posisi = 760;
                     for(i=0;i<bola.darah;i++){
                         context.drawImage(gambarHati, posisi, 15, 25, 25);
