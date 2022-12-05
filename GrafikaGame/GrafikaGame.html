@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Grafika Game</title>
+
+    <link rel="stylesheet" href="css/style.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+
+    <script>
+
+        $(document).ready(function () {
+
+            document.getElementById("myAudio").autoplay = true;
+
+
+            $("#canvas").hide();
+            $("#menu-page").show();
+
+
+            $("#start-game-button").click(function() {
+                $("#canvas").show();
+                $("#menu-page").hide();
+                var canvas = document.getElementById("canvas");
+                var context = canvas.getContext("2d");
+                var skor = 0;
+
+                /* -- player -- */
+                var bola = {
+                    x: 400,
+                    y: 580,
+                    warna: "#ed6db6",
+                    sudut: 0,
+                    offset: 0,
+                    jarijari: 20,
+                    darah: 3,
+                    speed: 5
+                };
+
+                /* -- Citra gmabar darah -- */
+                var gambarHati = new Image();
+                gambarHati.src = "asset/heart.png";
+
+                /* -- Peluru dalam bentuk bulat -- */
+                var jarijaripeluru = 5;
+                var peluru = [];
+                function buatpeluru(xbola,ybola,sawal,offset,maju){
+                    pelor = {
+                        x: xbola + 0*Math.cos(sawal * Math.PI)-maju*Math.sin(sawal * Math.PI),
+                        y: ybola + 0*Math.sin(sawal * Math.PI)+maju*Math.cos(sawal *Math.PI),
+                        warna: "#00aa00",
+                        sudut: sawal,
+                        offset: offset
+                    };
+                    peluru.push(pelor);
+                }
+
+                /* -- Peluru dalam bentuk bulat musuh -- */
+                var jarijaripeluru = 5;
+                var peluru2 = [];
+                function buatpeluru2(xbola,ybola,sawal,offset,maju){
+                    pelor = {
+                        x: xbola + 0*Math.cos(sawal * Math.PI)-maju*Math.sin(sawal * Math.PI),
+                        y: ybola + 0*Math.sin(sawal * Math.PI)+maju*Math.cos(sawal *Math.PI),
+                        warna: "#7872ed",
+                        sudut: sawal,
+                        offset: offset
+                    };
+                    peluru2.push(pelor);
+                }
+
+                /* -- Gambar musuh level 1 -- */
+                var jumlahBola = 7;
+                var musuh = new Array;
+                var xMusuh = 100;
+                var yMusuh = 100;
+                for(var i=1; i<=jumlahBola; i++){
+                    musuh[i] = {
+                        x: xMusuh,
+                        y: yMusuh,
+                        warna: "#7872ed",
+                        jarijari: 20,
+                        keadaan: "hidup"
+                    }
+                    xMusuh += 100;
+                    if(i%2==1){
+                        yMusuh += 50;
+                    }else{
+                        yMusuh -= 50;
+                    }
+                };
+
+                /* -- Gambar musuh level 2 -- */
+                var jumlahBola2 = 7;
+                var musuh2 = new Array;
+                var xMusuh2 = 100;
+                var yMusuh2 = 100;
+                for(var i=1; i<=jumlahBola2; i++){
+                    musuh2[i] = {
+                        x: xMusuh2,
+                        y: yMusuh2,
+                        warna: "#7872ed",
+                        sudut: 45,
+                        jarijari: 20,
+                        keadaan: "hidup"
+                    }
+                    xMusuh2 += 100;
+                    if(i%2==1){
+                        yMusuh2 += 50;
+                    }else{
+                        yMusuh2 -= 50;
+                    }
+                };
+
+                /* -- Fungsi menghitung jarak Euclidean -- */
+                function euDist(objek1, objek2){
+                    jarak = Math.sqrt(Math.pow(objek1.x-objek2.x,2)+Math.pow(objek1.y-objek2.y,2));
+                    return jarak;
+                }
+
+                /* -- deteksi keyboard -- */
+                var LEFT = false; 
+                var RIGHT = false;
+                var UP = false; 
+                var DOWN = false;
+                
+                function move() {
+                    if(LEFT) { 
+                        bola.x -= bola.speed;
+                        if (bola.x <= 20){
+                            bola.x = 20;	
+                        }
+                    }
+                    if(RIGHT) {
+                        bola.x += bola.speed;
+                        if (bola.x >= 780){
+                            bola.x = 780;	
+                        }
+                    }
+                    if(UP) { 
+                        bola.y -= bola.speed;
+
+                        if (bola.y <= 400){
+                            bola.y = 400;	
+                        }
+                    }
+                    if(DOWN) {
+                        bola.y += bola.speed;
+                        if (bola.y >= 580){
+                            bola.y = 580;	
+                        }	
+                    }
+                    
+                }
+
+                document.onkeydown = function(e) {
+                    if(e.keyCode == 38) UP = true;
+                    if(e.keyCode == 40) DOWN = true;
+                    if(e.keyCode == 37) LEFT = true;
+                    if(e.keyCode == 39) RIGHT = true;
+                }
+
+                document.onkeyup = function(e) {
+                    if(e.keyCode == 38) UP = false;
+                    if(e.keyCode == 40) DOWN = false;
+                    if(e.keyCode == 37) LEFT = false;
+                    if(e.keyCode == 39) RIGHT = false;
+                }
+
+                // variabel dalam membantu mengatur jarak keluar peluru
+                var fireRate = 15;
+                var counter = 0;
+                var fireRateMusuh = 25;
+                var counterMusuh = 0;
+
+                // nama halaman
+                var level1=1;
+                var level2=2;
+
+                //variabel pembantu cek sisa musuh
+                var sisaMusuh1 = jumlahBola;
+                var sisaMusuh2 = jumlahBola2;
+
+
+                var intervalCanvas = setInterval(gambarkan, 20);
+
+                //pengecekan jika musuh sudah lewat batas bawah canvas
+                function musuhLewat() {
+                    for(i=1;i<=jumlahBola;i++){
+                        if (musuh[i].keadaan == "hidup") {
+                            if(musuh[i].y > 620){
+                                return true;
+                            }else{
+                                return false;
+                            }
+                        }
+                    }
+                }
+                
+
+                /* -- penggambaran dinamis -- */
+                function gambarkan(){
+                    
+                    context.clearRect(0,0,800,600);
+                        
+                    context.font = "bold 30px Arial";
+                    context.fillStyle="#f21202";
+                    context.fillText(skor,10,30);
+                    
+                    context.font = "bold 20px Arial";
+                    context.fillStyle="#ffffff";
+                    context.fillText("Level : "+level1,365,23);
+
+                    if(counter >= fireRate){
+                        buatpeluru(bola.x,bola.y,bola.sudut,-(1+Math.abs(5)),-bola.jarijari-5);
+                        counter = 0;
+                    }
+                    /* background dst masuk sini */
+                    var posisi = 760;
+                    for(i=0;i<bola.darah;i++){
+                        context.drawImage(gambarHati, posisi, 15, 25, 25); //context.drawImage(objek_image,Xawal,Yawal,lebar,tinggi)
+                        posisi-=35;
+                    }
+                    /*--- Bagian bola dan cucuk ---*/
+                    context.save();
+                    /*--- Layer kalkulasi ---*/
+                    //update nilai geseran secara kontinu
+                    bola.x = bola.x + 0*Math.cos(bola.sudut * Math.PI)-bola.offset*Math.sin(bola.sudut * Math.PI);
+                    if(bola.x<(0+bola.jarijari)||bola.x>(800-bola.jarijari)){
+                            bola.offset=-bola.offset;
+                    }
+                    if(bola.y<(0+bola.jarijari)||bola.y>(600-bola.jarijari)){
+                            bola.offset=-bola.offset;
+                    }
+                    //geser kanvas sesuai posisi koordinat bola pada sumbu 	
+                    context.translate(bola.x, bola.y);
+                    //rotasi hadap bola	
+                    context.rotate(bola.sudut * Math.PI);
+
+                    /*--- Layer penggambaran ---*/	
+                    /* digambar bolanya */
+                    context.beginPath();
+                    context.arc(0,0,bola.jarijari,0,2*Math.PI, false);		//jari-jarinya 20
+                    context.closePath();
+                    context.fillStyle = bola.warna;
+                    context.fill();
+                    /* digambar cucuknya */
+                    context.beginPath();
+                    context.moveTo(0,-bola.jarijari);
+                    context.lineTo(10,-10);
+                    context.lineTo(-10,-10);
+                    context.closePath();
+                    context.fillStyle = "#ffff00";
+                    context.strokeStyle="#666666";
+                    context.stroke();
+                    context.fill();
+                    context.restore();
+                    
+                    for(i=1;i<=jumlahBola;i++){
+                        if(musuh[i].keadaan == 'hidup'){
+                            //geser kanvas sesuai posisi koordinat bola pada sumbu 	
+                            context.save();
+                            context.translate(musuh[i].x, musuh[i].y);
+                            /* digambar bolanya */
+                            context.beginPath();
+                            context.arc(0,0,musuh[i].jarijari,0,2*Math.PI, false);		//jari-jarinya 20
+                            context.closePath();
+                            context.fillStyle = musuh[i].warna;
+                            context.fill();
+                            context.restore();
+
+                            // gerakan musuh kebawah pada level 1
+                            musuh[i].y += 1;
+
+                            //pengecekan tabrakan antara player dan musuh
+                            jb1=euDist(bola,musuh[i]);
+                            if(jb1<=(musuh[i].jarijari+bola.jarijari )){
+                                bola.darah--;
+                                musuh[i].jarijari = -100;
+                                musuh[i].keadaan = "tewas";
+                                sisaMusuh1--;                  
+                            }
+                        }
+                    }
+
+                    //pengecekan semua kondisi jika player masih hidup
+                    if(bola.darah > 0 && sisaMusuh1 > 0){
+                        move();
+                        /*--- Bagian peluru ---*/
+                        if(peluru.length>0){
+                            for(i=0;i<peluru.length;i++){
+                                context.save();					
+                                /*--- Layer kalkulasi ---*/
+                                //update nilai geseran secara kontinu
+                                peluru[i].x = peluru[i].x + 0*Math.cos(peluru[i].sudut * Math.PI)-peluru[i].offset*Math.sin(peluru[i].sudut * Math.PI);
+                                peluru[i].y = peluru[i].y + 0*Math.sin(peluru[i].sudut * Math.PI)+peluru[i].offset*Math.cos(peluru[i].sudut *Math.PI);
+                                //geser kanvas sesuai posisi koordinat bola pada sumbu 	
+                                context.translate(peluru[i].x, peluru[i].y);
+                                /*--- Layer penggambaran ---*/	
+                                /* digambar pelurunya */
+                                context.beginPath();
+                                context.arc(0,0,jarijaripeluru,0,2*Math.PI, false);		
+                                context.closePath();
+                                context.fillStyle = peluru[i].warna;
+                                context.fill();
+
+                                /* -- Collision detection -- */
+                                //pengecekan jika peluru mengenai musuh
+                                shot=false;
+                                for(j=1;j<=7;j++){
+                                    if(shot==false){
+                                        jb0=euDist(peluru[i],musuh[j]);
+                                        if(jb0<=(musuh[j].jarijari+jarijaripeluru)){
+                                            musuh[j].jarijari = -100;
+                                            peluru.splice(i,1);	
+                                            shot=true;
+                                            skor += 30;
+                                            musuh[j].keadaan = "tewas";
+                                            sisaMusuh1--;
+                                        }
+                                    }
+                                }
+                                context.restore();
+                            }
+                        }
+                    }
+                    //pengecekan jika player kalah
+                    if(musuhLewat() || bola.darah == 0){
+                        context.font = "bold 30px Arial";
+                        context.fillStyle="#f21202";
+                        context.fillText("Game Over",320,300);
+                        context.fillText("Klik untuk exit",300,350);
+                        context.fillText("Skor Akhir : "+skor,290,400);
+                        canvas.addEventListener("mousedown", mousedn, true);
+                        function mousedn(e){
+                            clearInterval(intervalCanvas);
+                            $("#about-page").hide();
+                            $("#canvas").hide();
+                            $("#menu-page").show();
+			            }
+                    
+                    }
+                    //pengecekan jika berhasil membunuh semua musuh dan pindah level 2
+                    if(sisaMusuh1 == 0 ){
+                        context.font = "bold 30px Arial";
+                        context.fillStyle="#f21202";
+                        context.fillText("Klik To Next Level",270,350);
+                        canvas.addEventListener("mousedown", mousedn, true);
+                        function mousedn(e){
+                            clearInterval(intervalCanvas);
+                            intervalCanvas = setInterval(gambarkan2,20);
+                            bola.x = 400;
+                            bola.y = 580;
+                            bola.darah = 3;
+                            peluru = [];
+                            $("#about-page").hide();
+                            $("#canvas").show();
+                            $("#menu-page").hide();
+			            }
+                    }
+                    counter++;  
+                }
+
+                //Level 2
+                var perpindahan = 3;
+        
+                function gambarkan2() {
+                    context.clearRect(0,0,800,600);
+                    context.font = "bold 30px Arial";
+                    context.fillStyle="#f21202";
+                    context.fillText(skor,10,30);
+
+                    context.font = "bold 20px Arial";
+                    context.fillStyle="#ffffff";
+                    context.fillText("Level : "+level2,365,23);
+
+                    if(counter >= fireRate){
+                        buatpeluru(bola.x,bola.y,bola.sudut,-(1+Math.abs(5)),-bola.jarijari-5); 
+                        counter = 0;
+                    }
+                    if(counterMusuh >=fireRateMusuh){
+                        for(i=1;i<=jumlahBola2;i++){
+                            if(musuh2[i].keadaan == "hidup"){
+                                buatpeluru2(musuh2[i].x,musuh2[i].y,musuh2[i].sudut,-(1+Math.abs(5)),-bola.jarijari-5);
+                            }
+                        }
+                        counterMusuh = 0
+                    }
+                    //menggambar darah
+                    var posisi = 760;
+                    for(i=0;i<bola.darah;i++){
+                        context.drawImage(gambarHati, posisi, 15, 25, 25);
+                        posisi-=35;
+                    }  
+
+                    /*--- Bagian bola dan cucuk ---*/
+                    context.save();
+                    /*--- Layer kalkulasi ---*/
+                    //update nilai geseran secara kontinu
+                    bola.x = bola.x + 0*Math.cos(bola.sudut * Math.PI)-bola.offset*Math.sin(bola.sudut * Math.PI);
+                    if(bola.x<(0+bola.jarijari)||bola.x>(800-bola.jarijari)){
+                            bola.offset=-bola.offset;
+                    }
+                    if(bola.y<(0+bola.jarijari)||bola.y>(600-bola.jarijari)){
+                            bola.offset=-bola.offset;
+                    }
+                    //geser kanvas sesuai posisi koordinat bola pada sumbu 	
+                    context.translate(bola.x, bola.y);
+                    //rotasi hadap bola	
+                    context.rotate(bola.sudut * Math.PI);
+
+                    /*--- Layer penggambaran ---*/	
+                    /* digambar bolanya */
+                    context.beginPath();
+                    context.arc(0,0,bola.jarijari,0,2*Math.PI, false);		//jari-jarinya 20
+                    context.closePath();
+                    context.fillStyle = bola.warna;
+                    context.fill();
+                    /* digambar cucuknya */
+                    context.beginPath();
+                    context.moveTo(0,-bola.jarijari);
+                    context.lineTo(10,-10);
+                    context.lineTo(-10,-10);
+                    context.closePath();
+                    context.fillStyle = "#ffff00";
+                    context.strokeStyle="#666666";
+                    context.stroke();
+                    context.fill();
+                    context.restore();
+
+                    for(i=1;i<=jumlahBola2;i++){
+                        if(musuh2[i].keadaan == "hidup"){
+                            //geser kanvas sesuai posisi koordinat bola pada sumbu 	
+                            context.save();
+                            context.translate(musuh2[i].x, musuh2[i].y);
+                            context.rotate(musuh2[i].sudut * Math.PI);
+                            /* digambar bolanya */
+                            context.beginPath();
+                            context.arc(0,0,musuh2[i].jarijari,0,2*Math.PI, false);		//jari-jarinya 20
+                            context.closePath();
+                            context.fillStyle = musuh2[i].warna;
+                            context.fill();
+                            context.restore();
+
+                            //gerak musuh
+                            musuh2[i].x -= perpindahan;
+                            if(musuh2[i].x <=20){
+                                perpindahan = -3;
+                            }
+                            if(musuh2[i].x >=780){
+                                perpindahan = 3;
+                            }
+
+                            //pengecekan jika player mengenai musuh
+                            jb1=euDist(bola,musuh2[i]);
+                            if(jb1<=(musuh2[i].jarijari+bola.jarijari )){
+                                bola.darah--;
+                                musuh2[i].jarijari = -100;
+                                musuh2[i].keadaan = "tewas";
+                                sisaMusuh2--;                  
+                            }
+                            
+                        }
+
+                    }
+
+                    //pengecekan semua kondisi jika player masih hidup
+                    if(sisaMusuh2 > 0 && bola.darah > 0){
+                        move();
+                        /*--- Bagian peluru ---*/
+                        //pengecekan peluru player
+                        if(peluru.length>0){
+                            for(i=0;i<peluru.length;i++){
+                                context.save();					
+                                /*--- Layer kalkulasi ---*/
+                                //update nilai geseran secara kontinu
+                                peluru[i].x = peluru[i].x + 0*Math.cos(peluru[i].sudut * Math.PI)-peluru[i].offset*Math.sin(peluru[i].sudut * Math.PI);
+                                peluru[i].y = peluru[i].y + 0*Math.sin(peluru[i].sudut * Math.PI)+peluru[i].offset*Math.cos(peluru[i].sudut *Math.PI);
+                                //geser kanvas sesuai posisi koordinat bola pada sumbu 	
+                                context.translate(peluru[i].x, peluru[i].y);
+                                /*--- Layer penggambaran ---*/	
+                                /* digambar pelurunya */
+                                context.beginPath();
+                                context.arc(0,0,jarijaripeluru,0,2*Math.PI, false);		
+                                context.closePath();
+                                context.fillStyle = peluru[i].warna;
+                                context.fill();
+
+                                /* -- Collision detection -- */
+                                //pengecekan jika peluru mengenai musuh
+                                shot=false;
+                                for(j=1;j<=7;j++){
+                                    if(shot==false){
+                                        jb0=euDist(peluru[i],musuh2[j]);
+                                        if(jb0<=(musuh2[j].jarijari+jarijaripeluru)){
+                                            musuh2[j].jarijari = -100;
+                                            peluru.splice(i,1);	
+                                            shot=true;
+                                            skor += 30;
+                                            sisaMusuh2--;
+                                            musuh2[j].keadaan = "tewas";
+                                        }
+                                    }
+                                }
+                                context.restore();
+                            }
+                        }
+
+                        //pengecekan peluru musuh
+                        if(peluru2.length>0){
+                            for(i=0;i<peluru2.length;i++){
+                                context.save();					
+                                /*--- Layer kalkulasi ---*/
+                                //update nilai geseran secara kontinu
+                                peluru2[i].x = peluru2[i].x + 0*Math.cos(peluru2[i].sudut * Math.PI)-peluru2[i].offset*Math.sin(peluru2[i].sudut * Math.PI);
+                                peluru2[i].y = peluru2[i].y + 0*Math.sin(peluru2[i].sudut * Math.PI)+peluru2[i].offset*Math.cos(peluru2[i].sudut *Math.PI);
+                                //geser kanvas sesuai posisi koordinat bola pada sumbu 	
+                                context.translate(peluru2[i].x, peluru2[i].y);
+                                /*--- Layer penggambaran ---*/	
+                                /* digambar pelurunya */
+                                context.beginPath();
+                                context.arc(0,0,jarijaripeluru,0,2*Math.PI, false);		
+                                context.closePath();
+                                context.fillStyle = peluru2[i].warna;
+                                context.fill();
+
+                                /* -- Collision detection -- */
+                                //pengecekan jika peluru mengenai player
+                                shot=false;
+                                for(j=1;j<=7;j++){
+                                    if(shot==false){
+                                        jb2=euDist(peluru2[i],bola);
+                                        if(jb2<=(bola.jarijari+jarijaripeluru)){
+                                            peluru2.splice(i,1);	
+                                            shot=true;
+                                            bola.darah--;
+                                        }
+                                    }
+                                }
+                                context.restore();
+                            }
+                        }
+                    }else if(bola.darah == 0){
+                        context.font = "bold 30px Arial";
+                        context.fillStyle="#f21202";
+                        context.fillText("Game Over",320,300);
+                        context.fillText("Skor Akhir : "+skor,290,350);
+                        canvas.addEventListener("mousedown", mousedn, true);
+                        function mousedn(e){
+                            clearInterval(intervalCanvas);
+                            $("#about-page").hide();
+                            $("#canvas").hide();
+                            $("#menu-page").show();
+			            } 
+                    }else{
+                        context.font = "bold 30px Arial";
+                        context.fillStyle="#f21202";
+                        context.fillText("Selamat anda berhasil menyelesaikan",140,300);
+                        context.fillText("Game Deadly Shooter",230,350);
+                        context.fillText("Skor Akhir : "+skor,290,400);
+                        canvas.addEventListener("mousedown", mousedn, true);
+                        function mousedn(e){
+                            clearInterval(intervalCanvas);
+                            $("#about-page").hide();
+                            $("#canvas").hide();
+                            $("#menu-page").show();
+			            }
+                    }
+                    counter++;
+                    counterMusuh++;
+                }
+                intervalCanvas;
+                
+            });
+
+            $("#about-button").click(function() {
+                $("#about-page").show();
+                $("#canvas").hide();
+                $("#menu-page").hide();
+            });
+            $(".back-button").click(function() {
+                $("#about-page").hide();
+                $("#canvas").hide();
+                $("#menu-page").show();
+            });
+
+        });
+    </script>
+</head>
+<body>  
+
+    <audio id="myAudio" autoplay loop>
+        <source src="musik.aac" type="audio/aac">
+        Your browser does not support the audio element.
+    </audio>
+    <div id="wrapper">
+        <div id="menu-page">
+            <h1>Space Shooter</h1>
+            <ul>
+                <li><a id="start-game-button" href="#">Start Game</a></li>
+            </ul>
+        </div>
+        <canvas id="canvas" width="800" height="600">
+            Your web browser does not support a canvas
+        </canvas>
+    </div>
+</body>
+</html>
