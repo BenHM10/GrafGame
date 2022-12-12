@@ -91,3 +91,9 @@ a:hover {
 #game-over-p {
     font-size: 1.3em;
 }
+
+#musik-button {
+    position:absolute;
+    left:77%;
+    top:12%
+}

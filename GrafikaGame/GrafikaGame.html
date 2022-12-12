@@ -170,7 +170,7 @@
                     if(e.keyCode == 39) RIGHT = false;
                 }
 
-                // variabel mengatur jarak keluar peluru
+                // variabel dalam membantu mengatur jarak keluar peluru
                 var fireRate = 15;
                 var counter = 0;
                 var fireRateMusuh = 25;
@@ -218,7 +218,7 @@
                         buatpeluru(bola.x,bola.y,bola.sudut,-(1+Math.abs(5)),-bola.jarijari-5);
                         counter = 0;
                     }
-                    /* background dst */
+                    /* background dst masuk sini */
                     var posisi = 760;
                     for(i=0;i<bola.darah;i++){
                         context.drawImage(gambarHati, posisi, 15, 25, 25); //context.drawImage(objek_image,Xawal,Yawal,lebar,tinggi)
@@ -389,7 +389,7 @@
                         }
                         counterMusuh = 0
                     }
-                    //menggambar nyawa
+                    //menggambar darah
                     var posisi = 760;
                     for(i=0;i<bola.darah;i++){
                         context.drawImage(gambarHati, posisi, 15, 25, 25);
@@ -516,7 +516,7 @@
                                 /*--- Layer kalkulasi ---*/
                                 //update nilai geseran secara kontinu
                                 peluru2[i].x = peluru2[i].x + 0*Math.cos(peluru2[i].sudut * Math.PI)-peluru2[i].offset*Math.sin(peluru2[i].sudut * Math.PI);
-                                peluru2[i].y = peluru2[i].y + 0*Math.sin(peluru2[i].sudut * Math.PI)+peluru2[i].offset*Math.cos(peluru2[i].sudut *Math.PI);
+                                peluru2[i].y = peluru2[i].y + 0*Math.sin(peluru2[i].sudut * Math.PI)+peluru2[i].offset*Math.cos(peluru2[i].sudut * Math.PI);
                                 //geser kanvas sesuai posisi koordinat bola pada sumbu 	
                                 context.translate(peluru2[i].x, peluru2[i].y);
                                 /*--- Layer penggambaran ---*/	
@@ -590,11 +590,12 @@
         });
     </script>
 </head>
-<body>  
+<body>
 
     <audio id="myAudio" autoplay loop>
-        <source src="musik.aac" type="audio/aac">
-        Your browser does not support the audio element.
+        <source src="musik.mp3" type="audio/mpeg">
+        
+        Your browser does n ot support the audio element.
     </audio>
     <div id="wrapper">
         <div id="menu-page">
